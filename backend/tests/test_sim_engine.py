@@ -163,6 +163,20 @@ def test_reset_removes_sim_items_and_events(env):
     assert _row(env, ev.external_id) is None
 
 
+def test_reset_cleans_sim_items_of_disabled_source(env):
+    user = env.get(User, "an.nguyen")
+    ev = simulator.emit(env, user, "teams_mention", rng=random.Random(1))
+    ext_id = ev.external_id  # ev bị xoá khi reset
+    item_id = _row(env, ext_id).id
+    assert env.scalar(select(func.count()).select_from(Alert).where(Alert.work_item_id == item_id)) > 0
+    get_user_settings(env, "an.nguyen").enabled_sources = ["exchange_mail", "jira"]  # tắt teams sau khi phát
+    env.commit()
+    simulator.reset(env, user)
+    assert _row(env, ext_id) is None
+    assert env.scalar(select(func.count()).select_from(Alert).where(Alert.work_item_id == item_id)) == 0
+    assert env.scalar(select(func.count()).select_from(LiveEvent).where(LiveEvent.username == "an.nguyen")) == 0
+
+
 def test_events_since_and_latest_id(env):
     user = env.get(User, "an.nguyen")
     rng, now = random.Random(4), _now()

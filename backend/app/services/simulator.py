@@ -12,7 +12,7 @@ from app.connectors.base import ItemIn
 from app.connectors.live import item_to_payload, payload_to_item
 from app.core.config import get_settings
 from app.core.deps import get_user_settings
-from app.db.models import LiveEvent, User, WorkItem
+from app.db.models import Alert, LiveEvent, User, WorkItem
 from app.services.sim_catalog import SCENARIOS, ScenarioCtx, persona_of, scenarios_for
 from app.services.sync_service import UPDATABLE_FIELDS, recompute, sync_user, user_context, user_items
 
@@ -86,8 +86,22 @@ def emit(db: Session, user: User, scenario: str | None = None, now: datetime | N
 
 
 def reset(db: Session, user: User) -> None:
-    """Xoá mọi sự kiện của user rồi sync lại: item do sim tạo biến mất, item bị sửa trở về dữ liệu gốc."""
+    """Xoá mọi sự kiện của user rồi sync lại: item do sim tạo biến mất, item bị sửa trở về dữ liệu gốc.
+
+    sync_user chỉ dọn item của các nguồn ĐANG BẬT, nên item của nguồn đã tắt phải xoá tại đây
+    (cùng nhắc việc của chúng); dữ liệu gốc của nguồn đó sẽ quay lại khi bật lại và sync.
+    """
+    touched = set(db.execute(select(LiveEvent.source, LiveEvent.external_id).where(LiveEvent.username == user.username)))
     db.execute(delete(LiveEvent).where(LiveEvent.username == user.username))
+    enabled = set(get_user_settings(db, user.username).enabled_sources or [])
+    for source, ext_id in touched:
+        if source in enabled:
+            continue
+        ids = list(db.scalars(select(WorkItem.id).where(
+            WorkItem.username == user.username, WorkItem.source == source, WorkItem.external_id == ext_id)))
+        if ids:
+            db.execute(delete(Alert).where(Alert.work_item_id.in_(ids)))
+            db.execute(delete(WorkItem).where(WorkItem.id.in_(ids)))
     db.commit()
     sync_user(db, user)
 
