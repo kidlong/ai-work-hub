@@ -31,10 +31,10 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
-	<key>NSLocalNetworkUsageDescription</key>
-	<string>Kết nối tới máy chủ backend trong mạng nội bộ khi phát triển.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Dùng Face ID để mở khoá AI Work Hub và bảo vệ dữ liệu công việc.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Kết nối tới máy chủ backend trong mạng nội bộ khi phát triển.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
