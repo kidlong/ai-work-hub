@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/theme.dart';
 import '../../core/api_client.dart';
+import '../../data/live_events.dart';
 import '../../data/providers.dart';
 import '../../domain/models.dart';
 import '../../widgets/common.dart';
@@ -89,6 +90,43 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
     if (v != null && v.isNotEmpty && !s.vipSenders.contains(v)) {
       await _save(s.copyWith(vipSenders: [...s.vipSenders, v]));
+    }
+  }
+
+  Future<void> _emitSim([String? scenario]) async {
+    try {
+      await ref.read(repositoryProvider).simEmit(scenario: scenario);
+      await ref.read(liveEventsProvider.notifier).poll(); // hiện banner ngay, không đợi nhịp 8 giây
+    } catch (e) {
+      if (mounted) showSnack(context, ApiException.from(e).message);
+    }
+  }
+
+  Future<void> _pickScenario() async {
+    try {
+      final list = await ref.read(repositoryProvider).simScenarios();
+      if (!mounted) return;
+      final key = await showModalBottomSheet<String>(
+        context: context,
+        builder: (ctx) => SafeArea(
+          child: ListView(shrinkWrap: true, children: [
+            for (final sc in list) ListTile(title: Text(sc.label), onTap: () => Navigator.pop(ctx, sc.key)),
+          ]),
+        ),
+      );
+      if (key != null) await _emitSim(key);
+    } catch (e) {
+      if (mounted) showSnack(context, ApiException.from(e).message);
+    }
+  }
+
+  Future<void> _resetSim() async {
+    try {
+      await ref.read(repositoryProvider).simReset();
+      refreshWorkData(ref);
+      if (mounted) showSnack(context, 'Đã đặt lại dữ liệu giả lập');
+    } catch (e) {
+      if (mounted) showSnack(context, ApiException.from(e).message);
     }
   }
 
@@ -206,6 +244,35 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     onDeleted: () => _save(s.copyWith(vipSenders: s.vipSenders.where((e) => e != v).toList())),
                   ),
               ]),
+
+            if (ref.watch(liveEventsProvider).available == true) ...[
+              const SectionHeader('Dữ liệu giả lập', icon: Icons.bolt_outlined),
+              Card(
+                child: Column(children: [
+                  SwitchListTile(
+                    value: s.liveSimEnabled,
+                    onChanged: (v) => _save(s.copyWith(liveSimEnabled: v)),
+                    title: const Text('Tự động phát sự kiện mới'),
+                    subtitle: const Text('Cứ 30–90 giây có thêm mail, ticket, họp... (chế độ MOCK)'),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.flash_on_outlined),
+                    title: const Text('Phát sự kiện ngay'),
+                    onTap: _emitSim,
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.list_alt_outlined),
+                    title: const Text('Chọn kịch bản...'),
+                    onTap: _pickScenario,
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.restart_alt),
+                    title: const Text('Đặt lại dữ liệu giả lập'),
+                    onTap: _resetSim,
+                  ),
+                ]),
+              ),
+            ],
 
             const SectionHeader('Bảo mật & quyền riêng tư', icon: Icons.shield_outlined),
             Card(
