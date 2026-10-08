@@ -7,7 +7,11 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 
+from sqlalchemy import select
+
 from app.connectors.base import Connector, ItemIn, UserContext
+from app.connectors.live import payload_to_item
+from app.db.models import LiveEvent
 
 
 def _clock(now: datetime, tz):  # noqa: ANN001
@@ -170,9 +174,24 @@ def mock_dataset(ctx: UserContext, now: datetime, tz) -> list[ItemIn]:  # noqa: 
 
 
 class MockConnector(Connector):
-    def __init__(self, source: str, tz):  # noqa: ANN001
+    """Dữ liệu gốc + các sự kiện giả lập đã phát (bảng live_events). Cùng external_id thì sự kiện ghi đè."""
+
+    def __init__(self, source: str, tz, session_factory=None):  # noqa: ANN001
         self.source = source
         self.tz = tz
+        self.session_factory = session_factory
 
     def fetch(self, ctx: UserContext, now: datetime) -> list[ItemIn]:
-        return [i for i in mock_dataset(ctx, now, self.tz) if i.source == self.source]
+        base = [i for i in mock_dataset(ctx, now, self.tz) if i.source == self.source]
+        if self.session_factory is None:
+            return base
+        with self.session_factory() as db:
+            events = list(db.scalars(
+                select(LiveEvent)
+                .where(LiveEvent.username == ctx.username, LiveEvent.source == self.source)
+                .order_by(LiveEvent.id)
+            ))
+        merged = {i.external_id: i for i in base}
+        for ev in events:
+            merged[ev.external_id] = payload_to_item(ev)
+        return list(merged.values())

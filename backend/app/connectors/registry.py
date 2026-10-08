@@ -11,8 +11,9 @@ ALL_SOURCES = ["exchange_calendar", "exchange_mail", "jira", "confluence", "sdp"
 def build_connectors(settings: Settings) -> dict[str, Connector]:
     if settings.mock_connectors:
         from app.connectors.mock import MockConnector
+        from app.db.session import SessionLocal
 
-        return {src: MockConnector(src, settings.tz) for src in ALL_SOURCES}
+        return {src: MockConnector(src, settings.tz, SessionLocal) for src in ALL_SOURCES}
 
     conns: dict[str, Connector] = {}
     if settings.exchange_enabled:
