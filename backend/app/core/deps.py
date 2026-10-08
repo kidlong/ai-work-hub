@@ -4,6 +4,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
 from app.core.security import TokenError, decode_token
 from app.db.models import User, UserSettings
 from app.db.session import get_db
@@ -35,3 +36,9 @@ def get_user_settings(db: Session, username: str) -> UserSettings:
         db.commit()
         db.refresh(st)
     return st
+
+
+def require_mock() -> None:
+    """Endpoint giả lập chỉ tồn tại ở chế độ MOCK; ngoài ra giả vờ như không có."""
+    if not get_settings().mock_connectors:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Không tìm thấy")

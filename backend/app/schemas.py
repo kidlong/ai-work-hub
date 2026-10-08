@@ -156,3 +156,28 @@ class SettingsIO(BaseModel):
 class DeviceIn(BaseModel):
     token: str = Field(min_length=10, max_length=512)
     platform: str = Field(pattern="^(android|ios)$")
+
+
+class LiveEventOut(BaseModel):
+    id: int
+    type: str
+    scenario: str
+    source: str
+    severity: str
+    title: str
+    work_item_id: int | None
+    created_at: datetime
+
+
+class EventsOut(BaseModel):
+    events: list[LiveEventOut]
+    latest_id: int
+
+
+class SimEmitIn(BaseModel):
+    scenario: str | None = Field(default=None, max_length=48)
+
+
+class ScenarioOut(BaseModel):
+    key: str
+    label: str

@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import ai, alerts, auth, settings, work
+from app.api import ai, alerts, auth, settings, sim, work
 from app.core.config import get_settings
 from app.db.session import init_db
 
@@ -33,7 +33,7 @@ _origins = [o.strip() for o in get_settings().cors_origins.split(",") if o.strip
 app.add_middleware(CORSMiddleware, allow_origins=_origins, allow_methods=["*"], allow_headers=["*"])
 
 API_PREFIX = "/api/v1"
-for r in (auth.router, work.router, alerts.router, ai.router, settings.router):
+for r in (auth.router, work.router, alerts.router, ai.router, settings.router, sim.router):
     app.include_router(r, prefix=API_PREFIX)
 
 
