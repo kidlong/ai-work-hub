@@ -138,6 +138,38 @@ void main() {
     expect(repo.sinceArgs, [null, null]);
   });
 
+  test('reset khi poll đang bay: phản hồi cũ không ghi vào phiên mới', () async {
+    final repo = FakeRepo([LiveEventsPage([ev(5)], 5), LiveEventsPage([], 9)])..gate = Completer<void>();
+    final c = containerWith(repo);
+    final ctrl = c.read(liveEventsProvider.notifier);
+    final stale = ctrl.poll(); // người dùng A, đang chờ server
+    ctrl.reset(); // A đăng xuất, B đăng nhập ngay
+    repo.gate!.complete();
+    await stale;
+    final s = c.read(liveEventsProvider);
+    expect(s.available, isNull);
+    expect(s.batch, isEmpty);
+    expect(s.seq, 0);
+    await ctrl.poll(); // poll đầu của B không bị busy cũ chặn, và không mang con trỏ của A
+    expect(repo.sinceArgs, [null, null]);
+  });
+
+  testWidgets('stop rồi start khi poll đang bay chỉ giữ một vòng lặp', (tester) async {
+    final repo = FakeRepo(List.generate(20, (_) => LiveEventsPage([], 1)))..gate = Completer<void>();
+    final c = containerWith(repo);
+    final ctrl = c.read(liveEventsProvider.notifier);
+    ctrl.start(); // t=0: poll #1 bay (chờ gate)
+    ctrl.stop();
+    ctrl.start(); // vòng 2: poll bị busy chặn, hẹn timer 8s
+    await tester.pump(const Duration(seconds: 4));
+    repo.gate!.complete(); // t=4: vòng 1 tỉnh dậy; lỗi cũ sẽ hẹn thêm timer thứ hai (nhịp 12s, 20s, 28s)
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 20)); // tới t=24
+    // Một vòng: poll tại t=0, 8, 16, 24 = 4 lần. Hai vòng (lỗi) thêm t=12, 20 = 6 lần.
+    expect(repo.sinceArgs.length, 4);
+    ctrl.stop();
+  });
+
   test('liveBannerText', () {
     expect(liveBannerText([]), '');
     expect(liveBannerText([ev(1, title: 'A')]), 'A');

@@ -35,6 +35,10 @@ class LiveEventsController extends Notifier<LiveFeedState> {
   bool _running = false;
   bool _busy = false;
   bool _disposed = false;
+  // `_loopGen` đổi mỗi lần stop()/reset(): vòng lặp cũ đang chờ poll không được hẹn timer nữa.
+  // `_sessionGen` đổi mỗi lần reset(): phản hồi của poll thuộc phiên cũ bị bỏ, không ghi vào phiên mới.
+  int _loopGen = 0;
+  int _sessionGen = 0;
   Duration _interval = liveBaseInterval;
 
   Duration get interval => _interval;
@@ -56,6 +60,7 @@ class LiveEventsController extends Notifier<LiveFeedState> {
   }
 
   void stop() {
+    _loopGen++;
     _running = false;
     _timer?.cancel();
     _timer = null;
@@ -63,25 +68,30 @@ class LiveEventsController extends Notifier<LiveFeedState> {
 
   /// Đăng xuất: quên con trỏ và trạng thái để phiên sau bắt đầu sạch.
   void reset() {
+    if (_disposed) return;
     stop();
+    _sessionGen++;
+    _busy = false; // poll cũ (nếu còn bay) không được chặn poll đầu của phiên mới
     _cursor = null;
     _interval = liveBaseInterval;
     state = const LiveFeedState();
   }
 
   Future<void> _loop() async {
+    final g = _loopGen;
     await poll();
-    if (!_running || _disposed) return;
+    if (g != _loopGen || !_running || _disposed) return;
     _timer = Timer(_interval, _loop);
   }
 
   Future<void> poll() async {
     if (_busy || _disposed || state.available == false) return;
     _busy = true;
+    final g = _sessionGen;
     try {
       final since = _cursor;
       final page = await ref.read(repositoryProvider).liveEvents(since: since);
-      if (_disposed) return;
+      if (_disposed || g != _sessionGen) return;
       _interval = liveBaseInterval;
       if (state.available != true) state = state.copyWith(available: true);
       if (since == null || page.latestId < since) {
@@ -92,7 +102,7 @@ class LiveEventsController extends Notifier<LiveFeedState> {
       _cursor = page.events.last.id;
       state = LiveFeedState(available: true, batch: page.events, seq: state.seq + 1);
     } on ApiException catch (e) {
-      if (_disposed) return;
+      if (_disposed || g != _sessionGen) return;
       if (e.statusCode == 404) {
         stop();
         state = state.copyWith(available: false);
@@ -101,7 +111,7 @@ class LiveEventsController extends Notifier<LiveFeedState> {
         _interval = next > liveMaxInterval ? liveMaxInterval : next;
       }
     } finally {
-      _busy = false;
+      if (g == _sessionGen) _busy = false;
     }
   }
 }
