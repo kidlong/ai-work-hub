@@ -49,6 +49,31 @@ void main() {
     expect(src.map((e) => e.id), contains('sdp'));
   });
 
+  test('LiveEventsPage và SimScenario', () {
+    final p = LiveEventsPage.fromJson(fixture('events') as Map<String, dynamic>);
+    expect(p.events.length, 2);
+    expect(p.events.first.scenario, 'mail_manager_deadline');
+    expect(p.events.first.type, 'new_item');
+    expect(p.events.last.type, 'update_item');
+    expect(p.events.every((e) => ['info', 'warning', 'critical'].contains(e.severity)), isTrue);
+    expect(p.events.every((e) => e.workItemId != null && e.title.isNotEmpty), isTrue);
+    expect(p.latestId, p.events.last.id);
+
+    final sc = (fixture('scenarios') as List).map((e) => SimScenario.fromJson(e as Map<String, dynamic>)).toList();
+    expect(sc.length, 12);
+    expect(sc.map((s) => s.key), contains('sdp_sla_escalation'));
+  });
+
+  test('UserSettings giữ liveSimEnabled khi serialize', () {
+    final s = UserSettings.fromJson(fixture('settings') as Map<String, dynamic>);
+    expect(s.liveSimEnabled, isTrue);
+    final off = s.copyWith(liveSimEnabled: false);
+    expect(UserSettings.fromJson(off.toJson()).liveSimEnabled, isFalse);
+    // backend cũ chưa có trường này -> mặc định bật
+    final legacy = Map<String, dynamic>.from(fixture('settings') as Map)..remove('live_sim_enabled');
+    expect(UserSettings.fromJson(legacy).liveSimEnabled, isTrue);
+  });
+
   test('WorkItem.isOverdue và keyTime', () {
     final now = DateTime(2026, 10, 8, 10);
     final item = WorkItem.fromJson({

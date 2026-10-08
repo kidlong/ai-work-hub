@@ -1,1 +1,17 @@
-{"brief_time":"07:30","quiet_start":"21:00","quiet_end":"07:00","meeting_lead_minutes":15,"vip_senders":[],"enabled_sources":["exchange_mail","exchange_calendar","jira","confluence","sdp","teams"],"focus_time_suggestions":true}
+{
+  "brief_time": "07:30",
+  "quiet_start": "21:00",
+  "quiet_end": "07:00",
+  "meeting_lead_minutes": 15,
+  "vip_senders": [],
+  "enabled_sources": [
+    "exchange_mail",
+    "exchange_calendar",
+    "jira",
+    "confluence",
+    "sdp",
+    "teams"
+  ],
+  "focus_time_suggestions": true,
+  "live_sim_enabled": true
+}

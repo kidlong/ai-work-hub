@@ -83,4 +83,19 @@ class WorkHubRepository {
 
   Future<void> registerDevice(String token, String platform) =>
       _call(() => _dio.post('/devices', data: {'token': token, 'platform': platform}));
+
+  // ---- Giả lập realtime (chỉ backend MOCK; nơi khác trả 404)
+
+  Future<LiveEventsPage> liveEvents({int? since}) => _call(() async {
+        final r = await _dio.get('/events', queryParameters: {'since': ?since});
+        return LiveEventsPage.fromJson(r.data as Map<String, dynamic>);
+      });
+
+  Future<LiveEvent> simEmit({String? scenario}) => _call(() async =>
+      LiveEvent.fromJson((await _dio.post('/sim/emit', data: {'scenario': scenario})).data as Map<String, dynamic>));
+
+  Future<List<SimScenario>> simScenarios() => _call(() async =>
+      ((await _dio.get('/sim/scenarios')).data as List).map((e) => SimScenario.fromJson(e as Map<String, dynamic>)).toList());
+
+  Future<void> simReset() => _call(() => _dio.post('/sim/reset'));
 }

@@ -1,0 +1,25 @@
+{
+  "events": [
+    {
+      "id": 1,
+      "type": "new_item",
+      "scenario": "mail_manager_deadline",
+      "source": "exchange_mail",
+      "severity": "warning",
+      "title": "Mail mới từ quản lý: Tổng hợp giao dịch lỗi 3 ngày gần nhất, hạn 18:32",
+      "work_item_id": 23,
+      "created_at": "2026-10-08T10:32:54.771113Z"
+    },
+    {
+      "id": 2,
+      "type": "update_item",
+      "scenario": "sdp_sla_escalation",
+      "source": "sdp",
+      "severity": "critical",
+      "title": "SLA còn 10 phút: [SDP#50231] KH không chuyển được tiền liên ngân hàng từ app",
+      "work_item_id": 19,
+      "created_at": "2026-10-08T10:32:54.780172Z"
+    }
+  ],
+  "latest_id": 2
+}

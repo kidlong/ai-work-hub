@@ -1,0 +1,50 @@
+[
+  {
+    "key": "mail_manager_deadline",
+    "label": "Mail từ quản lý cần xử lý gấp"
+  },
+  {
+    "key": "mail_audit_request",
+    "label": "Mail yêu cầu từ Kiểm toán nội bộ"
+  },
+  {
+    "key": "mail_vip_customer",
+    "label": "Mail từ khách hàng/đối tác VIP"
+  },
+  {
+    "key": "sdp_new_incident",
+    "label": "Ticket SDP mới (sắp hết SLA)"
+  },
+  {
+    "key": "sdp_sla_escalation",
+    "label": "Ticket SDP sắp vi phạm SLA"
+  },
+  {
+    "key": "teams_mention",
+    "label": "@mention trên Teams"
+  },
+  {
+    "key": "meeting_new",
+    "label": "Lời mời họp mới"
+  },
+  {
+    "key": "meeting_conflict",
+    "label": "Họp mới trùng lịch"
+  },
+  {
+    "key": "meeting_moved",
+    "label": "Họp bị dời giờ"
+  },
+  {
+    "key": "jira_assigned_highest",
+    "label": "Jira mới mức Highest gán cho bạn"
+  },
+  {
+    "key": "jira_unblocked",
+    "label": "Jira hết bị chặn"
+  },
+  {
+    "key": "confluence_mention",
+    "label": "@mention trong trang wiki"
+  }
+]

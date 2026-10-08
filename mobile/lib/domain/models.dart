@@ -454,6 +454,7 @@ class UserSettings {
     required this.vipSenders,
     required this.enabledSources,
     required this.focusTimeSuggestions,
+    this.liveSimEnabled = true,
   });
 
   final String briefTime;
@@ -463,6 +464,7 @@ class UserSettings {
   final List<String> vipSenders;
   final List<String> enabledSources;
   final bool focusTimeSuggestions;
+  final bool liveSimEnabled;
 
   factory UserSettings.fromJson(Map<String, dynamic> j) => UserSettings(
         briefTime: j['brief_time'] as String,
@@ -472,6 +474,7 @@ class UserSettings {
         vipSenders: _strs(j['vip_senders']),
         enabledSources: _strs(j['enabled_sources']),
         focusTimeSuggestions: j['focus_time_suggestions'] as bool? ?? true,
+        liveSimEnabled: j['live_sim_enabled'] as bool? ?? true,
       );
 
   Map<String, dynamic> toJson() => {
@@ -482,6 +485,7 @@ class UserSettings {
         'vip_senders': vipSenders,
         'enabled_sources': enabledSources,
         'focus_time_suggestions': focusTimeSuggestions,
+        'live_sim_enabled': liveSimEnabled,
       };
 
   UserSettings copyWith({
@@ -492,6 +496,7 @@ class UserSettings {
     List<String>? vipSenders,
     List<String>? enabledSources,
     bool? focusTimeSuggestions,
+    bool? liveSimEnabled,
   }) =>
       UserSettings(
         briefTime: briefTime ?? this.briefTime,
@@ -501,6 +506,7 @@ class UserSettings {
         vipSenders: vipSenders ?? this.vipSenders,
         enabledSources: enabledSources ?? this.enabledSources,
         focusTimeSuggestions: focusTimeSuggestions ?? this.focusTimeSuggestions,
+        liveSimEnabled: liveSimEnabled ?? this.liveSimEnabled,
       );
 }
 
@@ -517,4 +523,60 @@ class SourceInfo {
         available: j['available'] as bool,
         enabled: j['enabled'] as bool,
       );
+}
+
+/// Sự kiện giả lập (chỉ có ở backend chế độ MOCK).
+class LiveEvent {
+  LiveEvent({
+    required this.id,
+    required this.type,
+    required this.scenario,
+    required this.source,
+    required this.severity,
+    required this.title,
+    this.workItemId,
+    required this.createdAt,
+  });
+
+  final int id;
+  final String type; // new_item | update_item
+  final String scenario;
+  final String source;
+  final String severity; // info | warning | critical
+  final String title;
+  final int? workItemId;
+  final DateTime createdAt;
+
+  factory LiveEvent.fromJson(Map<String, dynamic> j) => LiveEvent(
+        id: j['id'] as int,
+        type: j['type'] as String,
+        scenario: j['scenario'] as String,
+        source: j['source'] as String,
+        severity: j['severity'] as String? ?? 'info',
+        title: j['title'] as String,
+        workItemId: j['work_item_id'] as int?,
+        createdAt: _dt(j['created_at'])!,
+      );
+}
+
+class LiveEventsPage {
+  const LiveEventsPage(this.events, this.latestId);
+
+  final List<LiveEvent> events;
+  final int latestId;
+
+  factory LiveEventsPage.fromJson(Map<String, dynamic> j) => LiveEventsPage(
+        (j['events'] as List? ?? const []).map((e) => LiveEvent.fromJson(e as Map<String, dynamic>)).toList(),
+        j['latest_id'] as int? ?? 0,
+      );
+}
+
+class SimScenario {
+  const SimScenario({required this.key, required this.label});
+
+  final String key;
+  final String label;
+
+  factory SimScenario.fromJson(Map<String, dynamic> j) =>
+      SimScenario(key: j['key'] as String, label: j['label'] as String);
 }
