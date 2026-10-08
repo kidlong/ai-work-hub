@@ -64,6 +64,12 @@ Hoặc chạy bằng Docker: `docker compose up --build` (API + worker + Postgre
 Tài khoản demo: `an.nguyen / demo` (chuyên viên CNTT Core Banking) hoặc `lan.pham / demo` (RM khách hàng doanh nghiệp).
 Dữ liệu mẫu được sinh theo giờ hiện tại, nên lúc nào mở app cũng có họp sắp tới, việc quá hạn và ticket vi phạm SLA.
 
+**Dữ liệu giả lập realtime (chỉ chế độ MOCK).** Khi `MOCK_CONNECTORS=true` và worker đang chạy, cứ 30–90 giây mỗi người dùng nhận
+một sự kiện mới (mail từ quản lý/Kiểm toán/KH VIP, ticket SDP mới hoặc sắp vi phạm SLA, @mention Teams/wiki, họp mới/trùng/dời giờ,
+Jira mới hoặc hết bị chặn). App tự làm mới và hiện banner trong vòng ~8 giây. Trong **Cài đặt → Dữ liệu giả lập** có công tắc
+bật/tắt, nút "Phát sự kiện ngay", chọn kịch bản và "Đặt lại". Không chạy worker thì vẫn phát thủ công được. Ngoài chế độ MOCK,
+các endpoint này trả 404 và mục cài đặt không hiện.
+
 ### 2. App Flutter
 ```bash
 cd mobile
@@ -114,6 +120,10 @@ Proxy: `HTTPS_PROXY` cho Graph/FCM. Các hệ thống on-prem phải nằm trong
 | GET/PUT | `/api/v1/settings` · GET `/sources` | Cài đặt cá nhân |
 | POST/DELETE | `/api/v1/devices` | Đăng ký push token |
 | POST | `/api/v1/sync` | Đồng bộ ngay |
+| GET | `/api/v1/events?since=&limit=` | (chỉ MOCK) Sự kiện giả lập mới hơn `since`; thiếu `since` chỉ trả `latest_id` |
+| POST | `/api/v1/sim/emit` | (chỉ MOCK) Phát một sự kiện ngay, body tuỳ chọn `{"scenario": "..."}` |
+| GET | `/api/v1/sim/scenarios` | (chỉ MOCK) Danh sách kịch bản theo vai trò người dùng |
+| POST | `/api/v1/sim/reset` | (chỉ MOCK) Xoá sự kiện giả lập, trả dữ liệu về ban đầu |
 
 ---
 
@@ -131,7 +141,7 @@ ai_work_hub/
 │   ├── app/
 │   │   ├── api/          # router REST: auth, work, alerts, ai, settings
 │   │   ├── connectors/   # exchange_ews, jira_dc, confluence_dc, sdp, teams_graph, mock, registry
-│   │   ├── services/     # priority_engine, alert_engine, calendar_insights, sync, push, brief
+│   │   ├── services/     # priority_engine, alert_engine, calendar_insights, sync, push, brief, simulator, sim_catalog
 │   │   ├── ai/           # llm_client, pii_masker, prompts, brief_generator, ask_service, meeting_prep
 │   │   ├── core/         # config, JWT, LDAP, audit
 │   │   ├── db/           # SQLAlchemy models

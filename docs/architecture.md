@@ -149,3 +149,14 @@ Mô hình gợi ý: Qwen2.5-14B/32B-Instruct hoặc Llama-3.1-8B/70B-Instruct (t
 - Jira Service Management SLA chưa map (chỉ SDP). Có thể bổ sung bằng custom field SLA của JSM.
 - Confluence chưa lấy inline task (`/rest/inlinetasks`). Hiện chỉ lấy mention và watch.
 - App chưa tích hợp `firebase_messaging` (cần file cấu hình Firebase của ngân hàng). Hiện app dựa vào lịch nhắc cục bộ và đồng bộ khi mở app.
+
+## 8. Luồng sự kiện giả lập (chỉ MOCK)
+
+1. `worker.job_sim_tick` (10 giây/lần) hỏi `SimTicker`; user nào bật `live_sim_enabled` và đã tới lượt thì `simulator.emit`.
+   `POST /sim/emit` gọi cùng hàm này trong tiến trình API (hai tiến trình dùng chung DB, không cần IPC).
+2. `emit` chọn kịch bản theo persona và nguồn đang bật → ghi `live_events` → upsert `WorkItem` → `recompute()` (chấm điểm + sinh `Alert`)
+   trong một transaction.
+3. `MockConnector.fetch` = dữ liệu gốc + item dựng lại từ `live_events` (mốc thời gian lưu dạng offset so với `created_at`),
+   nên lần sync 5 phút không xoá dữ liệu giả lập.
+4. App poll `GET /events?since=<con trỏ>` mỗi 8 giây khi ở foreground; có sự kiện thì invalidate Today/Alerts/Brief và hiện banner.
+   Nếu `latest_id` của server nhỏ hơn con trỏ (sau reset) app hạ con trỏ xuống.
