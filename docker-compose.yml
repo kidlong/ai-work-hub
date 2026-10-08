@@ -1,0 +1,45 @@
+# Chạy toàn bộ backend (API + worker + PostgreSQL).
+#   cp backend/.env.example backend/.env   # chỉnh cấu hình
+#   docker compose up --build
+# Mặc định chạy chế độ MOCK (dữ liệu mẫu), đăng nhập an.nguyen / demo.
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: aiworkhub
+      POSTGRES_USER: aiworkhub
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aiworkhub}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aiworkhub"]
+      interval: 5s
+      retries: 10
+
+  api:
+    build: ./backend
+    env_file: ./backend/.env
+    environment:
+      DATABASE_URL: postgresql+psycopg://aiworkhub:${POSTGRES_PASSWORD:-aiworkhub}@postgres:5432/aiworkhub
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      retries: 5
+
+  worker:
+    build: ./backend
+    command: ["python", "-m", "app.worker"]
+    env_file: ./backend/.env
+    environment:
+      DATABASE_URL: postgresql+psycopg://aiworkhub:${POSTGRES_PASSWORD:-aiworkhub}@postgres:5432/aiworkhub
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  pgdata:

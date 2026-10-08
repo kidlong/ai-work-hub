@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Work Hub – Trợ lý công việc thông minh cho cán bộ ngân hàng</title>
+<meta name="description" content="AI Work Hub gom lịch họp, email, Jira, Confluence, ServiceDesk Plus và Teams về một nơi. AI sắp xếp ưu tiên, nhắc đúng lúc và tóm tắt công việc mỗi sáng.">
+<style>
+:root{
+  --bg:#f6f8fb; --surface:#fff; --ink:#0f1b2d; --muted:#5a6b82; --line:#e2e8f0;
+  --brand:#1b5cff; --brand-ink:#fff; --accent:#00b894; --warn:#f59e0b; --danger:#e5484d;
+  --hero-a:#0b2a6f; --hero-b:#1b5cff; --shadow:0 10px 30px rgba(15,27,45,.08);
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0b1220;--surface:#111a2e;--ink:#eef2fa;--muted:#9fb0c8;--line:#22304a;--shadow:0 10px 30px rgba(0,0,0,.4)}
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:inherit}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+section{padding:72px 0}
+h1,h2,h3{line-height:1.2;margin:0 0 .5em}
+h2{font-size:clamp(1.6rem,3vw,2.2rem);letter-spacing:-.01em}
+.eyebrow{display:inline-block;font-size:.8rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--brand);margin-bottom:10px}
+.lead{color:var(--muted);max-width:60ch;font-size:1.05rem}
+
+/* hero */
+.hero{background:linear-gradient(135deg,var(--hero-a),var(--hero-b));color:#fff;padding:0}
+.nav{display:flex;justify-content:space-between;align-items:center;padding:22px 0}
+.logo{font-weight:800;font-size:1.15rem;letter-spacing:-.01em}
+.logo span{opacity:.7;font-weight:500}
+.hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:40px;align-items:center;padding:40px 0 84px}
+.hero h1{font-size:clamp(2rem,5vw,3.3rem);letter-spacing:-.02em}
+.hero p{font-size:1.1rem;opacity:.92;max-width:52ch}
+.cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+.btn{display:inline-block;padding:13px 22px;border-radius:12px;font-weight:700;text-decoration:none;border:2px solid transparent}
+.btn.primary{background:#fff;color:var(--hero-a)}
+.btn.ghost{border-color:rgba(255,255,255,.55);color:#fff}
+.btn:focus-visible{outline:3px solid #ffd166;outline-offset:2px}
+
+/* phone mock */
+.phone{background:#0a1224;border-radius:34px;padding:12px;max-width:310px;margin:0 auto;box-shadow:0 30px 60px rgba(0,0,0,.35)}
+.screen{background:var(--bg);color:var(--ink);border-radius:24px;padding:18px 16px;min-height:430px}
+.screen h4{margin:0 0 2px;font-size:1rem}
+.screen small{color:var(--muted)}
+.task{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:10px;font-size:.88rem}
+.task b{display:block}
+.score{float:right;font-weight:800;color:var(--danger)}
+.task.mid .score{color:var(--warn)}
+.task.low .score{color:var(--accent)}
+.why{color:var(--muted);font-size:.78rem}
+
+/* generic cards */
+.grid{display:grid;gap:18px}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g2{grid-template-columns:repeat(2,1fr)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:24px;box-shadow:var(--shadow)}
+.card h3{font-size:1.1rem}
+.card p{margin:0;color:var(--muted);font-size:.96rem}
+.ico{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:color-mix(in srgb,var(--brand) 12%,transparent);color:var(--brand);font-size:1.3rem;margin-bottom:14px}
+
+/* problem */
+.problem{background:var(--surface);border-block:1px solid var(--line)}
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+.chip{border:1px solid var(--line);background:var(--bg);padding:8px 14px;border-radius:999px;font-size:.9rem;font-weight:600}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;text-align:center}
+.stat b{display:block;font-size:2.2rem;color:var(--brand);letter-spacing:-.02em}
+.stat span{color:var(--muted);font-size:.9rem}
+
+/* security */
+.secure{background:linear-gradient(135deg,#0b1a3a,#10285c);color:#fff}
+.secure .lead{color:#c3d1ea}
+.secure .card{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14);box-shadow:none}
+.secure .card p{color:#c3d1ea}
+.secure .ico{background:rgba(255,255,255,.12);color:#fff}
+.secure .eyebrow{color:#8fb2ff}
+
+ul.ticks{list-style:none;margin:0;padding:0}
+ul.ticks li{padding-left:28px;position:relative;margin:10px 0;color:var(--muted)}
+ul.ticks li::before{content:"✓";position:absolute;left:0;color:var(--accent);font-weight:800}
+.roadmap li::before{content:"→";color:var(--brand)}
+
+.foot{text-align:center;padding:80px 0}
+.foot .btn.primary{background:var(--brand);color:var(--brand-ink)}
+footer{border-top:1px solid var(--line);padding:24px 0;color:var(--muted);font-size:.85rem;text-align:center}
+
+@media (max-width:860px){
+  .hero-grid,.g2{grid-template-columns:1fr}
+  .g3{grid-template-columns:1fr}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  section{padding:52px 0}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <nav class="nav" aria-label="Điều hướng chính">
+      <div class="logo">AI Work Hub <span>· Ngân hàng</span></div>
+    </nav>
+    <div class="hero-grid">
+      <div>
+        <h1>Một ứng dụng. Mọi công việc. AI biết việc nào làm trước.</h1>
+        <p>AI Work Hub gom lịch họp, email, Jira, Confluence, ServiceDesk Plus và Teams về một nơi trên điện thoại. AI xếp thứ tự ưu tiên, nhắc đúng lúc và tóm tắt ngày làm việc của bạn mỗi sáng.</p>
+        <div class="cta">
+          <a class="btn primary" href="#tinh-nang">Xem tính năng</a>
+          <a class="btn ghost" href="#bao-mat">Bảo mật dữ liệu</a>
+        </div>
+      </div>
+      <div class="phone" aria-label="Minh hoạ màn hình Top 3 việc ưu tiên">
+        <div class="screen">
+          <h4>Chào buổi sáng, An</h4>
+          <small>3 việc nên làm trước hôm nay</small>
+          <div class="task"><span class="score">92</span><b>Ticket SDP sắp vi phạm SLA</b><span class="why">Còn 1h 40' · Ưu tiên Highest</span></div>
+          <div class="task mid"><span class="score">78</span><b>Duyệt thay đổi release Core Banking</b><span class="why">Quá hạn 30 phút · Từ quản lý trực tiếp</span></div>
+          <div class="task low"><span class="score">61</span><b>Chuẩn bị họp giao ban 14:00</b><span class="why">3 ticket Jira liên quan · 1 trang Confluence</span></div>
+          <div class="task"><b>Khung tập trung gợi ý</b><span class="why">09:30 – 11:15 · không có cuộc họp</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="problem">
+  <div class="wrap">
+    <span class="eyebrow">Vấn đề</span>
+    <h2>Công việc nằm rải rác ở quá nhiều nơi</h2>
+    <p class="lead">Mỗi sáng, cán bộ nhân viên phải mở hết hệ thống này đến hệ thống khác để biết hôm nay cần làm gì. Việc gấp dễ bị chìm giữa hàng chục thông báo.</p>
+    <div class="chips" aria-label="Các nguồn dữ liệu">
+      <span class="chip">📅 Lịch họp</span><span class="chip">✉️ Email</span><span class="chip">🧩 Jira</span>
+      <span class="chip">📚 Confluence</span><span class="chip">🛠️ ServiceDesk Plus</span><span class="chip">💬 Teams</span>
+    </div>
+  </div>
+</section>
+
+<section id="tinh-nang">
+  <div class="wrap">
+    <span class="eyebrow">Tính năng</span>
+    <h2>Biết đúng việc, đúng lúc</h2>
+    <p class="lead">Mọi tính năng dưới đây đã có trong bản MVP hiện tại.</p>
+    <div class="grid g3" style="margin-top:32px">
+      <article class="card"><div class="ico">🔔</div><h3>Smart Notification</h3>
+        <p>Nhắc họp, việc sắp đến hạn (trước 24h và 2h), việc quá hạn, SLA sắp vi phạm, @mention, trùng lịch. Có giờ yên lặng và gom nhắc nhỏ thành một bản tin. Nhắc lên lịch ngay trên máy, mất VPN vẫn báo.</p></article>
+      <article class="card"><div class="ico">☀️</div><h3>Morning Brief</h3>
+        <p>Mỗi sáng thứ 2–6, giờ tuỳ chỉnh: 3 việc nên làm trước kèm lý do, lịch họp, hạn chót, rủi ro và khung giờ tập trung.</p></article>
+      <article class="card"><div class="ico">🎯</div><h3>Priority Inbox / Top 3</h3>
+        <p>Chấm điểm 0–100 và giải thích rõ lý do, ví dụ “Quá hạn 30 phút · Từ quản lý trực tiếp · Ưu tiên Highest”.</p></article>
+      <article class="card"><div class="ico">⏱️</div><h3>SLA Guard</h3>
+        <p>Theo dõi hạn xử lý của ticket ServiceDesk Plus, cảnh báo trước 2 giờ và báo khẩn khi đã vi phạm.</p></article>
+      <article class="card"><div class="ico">📝</div><h3>Meeting Prep</h3>
+        <p>Trước giờ họp, gom ticket Jira và trang Confluence được nêu trong thư mời, việc còn tồn với người dự họp. Gợi ý ý cần chuẩn bị và câu hỏi nên đặt.</p></article>
+      <article class="card"><div class="ico">🗓️</div><h3>Lịch thông minh</h3>
+        <p>Phát hiện họp trùng, chuỗi họp liền nhau, ngày quá tải (từ 65% giờ làm) và gợi ý khung tập trung từ 90 phút.</p></article>
+      <article class="card"><div class="ico">💬</div><h3>Ask AI</h3>
+        <p>Hỏi bằng tiếng Việt: “Ticket SDP nào sắp vi phạm SLA?”, “Chiều nay tôi họp gì?”.</p></article>
+      <article class="card"><div class="ico">👆</div><h3>Thao tác nhanh</h3>
+        <p>Vuốt để hoãn hoặc đánh dấu đã xem, hoãn nhắc 1h / 3h / sáng mai, đánh dấu xong, mở link gốc.</p></article>
+      <article class="card"><div class="ico">📶</div><h3>Chạy cả khi mất mạng nội bộ</h3>
+        <p>Nhắc việc được lên lịch ngay trên thiết bị, không phụ thuộc kết nối liên tục tới máy chủ.</p></article>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="card">
+      <div class="stats">
+        <div class="stat"><b>6</b><span>nguồn dữ liệu được gom về một nơi</span></div>
+        <div class="stat"><b>Top 3</b><span>việc ưu tiên mỗi sáng</span></div>
+        <div class="stat"><b>0–100</b><span>điểm ưu tiên, có giải thích</span></div>
+        <div class="stat"><b>100%</b><span>connector chỉ đọc</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="bao-mat" class="secure">
+  <div class="wrap">
+    <span class="eyebrow">Bảo mật theo chuẩn ngân hàng</span>
+    <h2>Thiết kế để dữ liệu nghiệp vụ ở lại trong tổ chức</h2>
+    <p class="lead">AI Work Hub dùng LLM đặt on-prem theo chuẩn OpenAI-compatible (vLLM / Ollama / TGI). Dữ liệu không phải rời hạ tầng của ngân hàng.</p>
+    <div class="grid g3" style="margin-top:32px">
+      <article class="card"><div class="ico">🛡️</div><h3>Che dữ liệu cá nhân trước khi vào AI</h3>
+        <p>Số tài khoản, số thẻ, CCCD/CMND, số điện thoại, email được che trước khi gửi LLM và khôi phục ở backend. Bảng ánh xạ không rời backend.</p></article>
+      <article class="card"><div class="ico">🔐</div><h3>Không giữ mật khẩu hệ thống nguồn</h3>
+        <p>App di động không lưu thông tin đăng nhập hệ thống nguồn. Token nằm trong Keychain/Keystore, có khoá sinh trắc học và tự khoá sau 5 phút ở nền.</p></article>
+      <article class="card"><div class="ico">👁️</div><h3>Chỉ đọc, có nhật ký kiểm toán</h3>
+        <p>Connector chỉ đọc. “Đã xong” hoặc “Hoãn” chỉ là trạng thái trên AI Work Hub. Mọi lần gọi AI đều có audit log, không ghi nội dung câu hỏi.</p></article>
+      <article class="card"><div class="ico">📵</div><h3>Thông báo không lộ nội dung</h3>
+        <p>Push và thông báo trên màn hình khoá mặc định không chứa nội dung nghiệp vụ.</p></article>
+      <article class="card"><div class="ico">✅</div><h3>Chống AI “bịa”</h3>
+        <p>Mã mục (item_id) do LLM trả về được kiểm tra lại với dữ liệu thật trước khi hiển thị.</p></article>
+      <article class="card"><div class="ico">🏦</div><h3>Đăng nhập bằng Active Directory</h3>
+        <p>Xác thực qua LDAPS, phiên JWT ngắn hạn. Kết nối Exchange, Jira, Confluence, SDP bằng tài khoản dịch vụ quyền tối thiểu.</p></article>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="grid g2">
+      <div>
+        <span class="eyebrow">Tích hợp</span>
+        <h2>Kết nối với hệ thống bạn đang dùng</h2>
+        <ul class="ticks">
+          <li>Active Directory (LDAPS)</li>
+          <li>Exchange on-prem: mail và lịch qua EWS</li>
+          <li>Jira Data Center và Confluence Data Center</li>
+          <li>ServiceDesk Plus on-prem</li>
+          <li>Microsoft Teams qua Graph (cấu hình tuỳ chọn, mặc định tắt)</li>
+          <li>Push qua FCM, không chứa nội dung nghiệp vụ</li>
+        </ul>
+      </div>
+      <div>
+        <span class="eyebrow">Sắp tới</span>
+        <h2>Lộ trình phát triển</h2>
+        <ul class="ticks roadmap">
+          <li>Follow-up tracker: nhắc mail đã gửi chưa có phản hồi</li>
+          <li>Meeting → Action items: trích việc cần làm từ biên bản họp</li>
+          <li>Tổng kết cuối ngày và báo cáo tuần tự động</li>
+          <li>Ghi ngược có phê duyệt (chấp nhận họp, đổi trạng thái ticket)</li>
+          <li>Đọc Morning Brief bằng giọng nói</li>
+        </ul>
+        <p style="color:var(--muted);font-size:.85rem">Các mục trên là đề xuất, chưa phát hành.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="foot">
+  <div class="wrap">
+    <h2>Bắt đầu ngày làm việc với đúng thứ cần làm</h2>
+    <p class="lead" style="margin:0 auto 24px">Dùng thử ngay ở chế độ demo với dữ liệu mẫu, không cần kết nối hệ thống thật.</p>
+    <a class="btn primary" href="mailto:">Liên hệ dùng thử</a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">© AI Work Hub · Flutter · FastAPI · PostgreSQL · LLM on-prem</div>
+</footer>
+
+</body>
+</html>

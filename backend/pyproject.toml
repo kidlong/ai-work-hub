@@ -1,0 +1,33 @@
+[project]
+name = "ai-work-hub-backend"
+version = "0.1.0"
+description = "AI Work Hub - BFF / Integration Gateway cho CBNV ngân hàng (Exchange on-prem, Jira/Confluence DC, SDP, Teams)"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.30",
+  "pydantic>=2.7",
+  "pydantic-settings>=2.3",
+  "sqlalchemy>=2.0.30",
+  "psycopg[binary]>=3.1",
+  "httpx>=0.27",
+  "pyjwt>=2.8",
+  "ldap3>=2.9",
+  "exchangelib>=5.4",
+  "apscheduler>=3.10,<4",
+  "tzdata>=2024.1",
+]
+
+[project.optional-dependencies]
+fcm = ["google-auth>=2.29", "requests>=2.31"]
+dev = ["pytest>=8.2", "respx>=0.21"]
+
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
