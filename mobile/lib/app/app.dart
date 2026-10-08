@@ -60,10 +60,14 @@ class _AiWorkHubAppState extends ConsumerState<AiWorkHubApp> with WidgetsBinding
       case AuthStatus.unknown || AuthStatus.locked:
         live.stop();
     }
+    // Banner (và nút "Mở") không được còn trên màn hình khoá / đăng nhập.
+    if (status != AuthStatus.signedIn) _messengerKey.currentState?.hideCurrentSnackBar();
   }
 
   void _onLive(LiveFeedState? prev, LiveFeedState next) {
     if (next.batch.isEmpty || next.seq == (prev?.seq ?? 0)) return;
+    // Một poll còn bay có thể về sau khi app đã khoá / đăng xuất: không hiện banner, không làm mới dữ liệu.
+    if (ref.read(authProvider).status != AuthStatus.signedIn) return;
     refreshWorkData(ref);
     final messenger = _messengerKey.currentState;
     if (messenger == null) return;

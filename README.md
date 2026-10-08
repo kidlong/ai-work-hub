@@ -165,6 +165,7 @@ ai_work_hub/
 - [ ] Chuyển Jira/Confluence sang OAuth 2.0 hoặc PAT cho từng người, để quyền xem dữ liệu khớp đúng quyền cá nhân (hiện dùng service account + lọc theo username).
 - [ ] Tích hợp `firebase_messaging` trên app (cần `google-services.json` / `GoogleService-Info.plist`), gọi `POST /devices`.
 - [ ] Alembic migration thay cho `create_all`. Retention policy cho `work_items` và `audit_logs`.
+- [ ] Phiên bản này thêm cột `user_settings.live_sim_enabled`. CSDL không phải dev phải chạy một lần, TRƯỚC khi triển khai: `ALTER TABLE user_settings ADD COLUMN live_sim_enabled BOOLEAN NOT NULL DEFAULT TRUE;` (cú pháp PostgreSQL). Nếu không, mọi truy vấn cài đặt trả HTTP 500. Với CSDL SQLite dev, cột được thêm tự động khi `APP_ENV=dev`. Đây là thêm một lý do cần Alembic như mục trên.
 - [ ] Mã hoá cột `preview` (pgcrypto / TDE). Rate limit ở API gateway thay cho bộ đếm trong bộ nhớ.
 - [ ] Distributed lock nếu chạy nhiều worker. Đăng ký app vào MDM, bật certificate pinning.
 - [ ] Đánh giá bảo mật (pentest) và đánh giá tác động xử lý dữ liệu cá nhân theo quy định hiện hành về bảo vệ dữ liệu cá nhân (Luật Bảo vệ dữ liệu cá nhân và văn bản hướng dẫn), cùng chính sách ATTT nội bộ của ngân hàng.

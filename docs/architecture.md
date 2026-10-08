@@ -149,6 +149,7 @@ Mô hình gợi ý: Qwen2.5-14B/32B-Instruct hoặc Llama-3.1-8B/70B-Instruct (t
 - Jira Service Management SLA chưa map (chỉ SDP). Có thể bổ sung bằng custom field SLA của JSM.
 - Confluence chưa lấy inline task (`/rest/inlinetasks`). Hiện chỉ lấy mention và watch.
 - App chưa tích hợp `firebase_messaging` (cần file cấu hình Firebase của ngân hàng). Hiện app dựa vào lịch nhắc cục bộ và đồng bộ khi mở app.
+- Cột `user_settings.live_sim_enabled` chỉ được thêm tự động khi `APP_ENV=dev` (`ensure_dev_columns`). CSDL không phải dev đang chạy phải chạy tay `ALTER TABLE user_settings ADD COLUMN live_sim_enabled BOOLEAN NOT NULL DEFAULT TRUE;` trước khi triển khai phiên bản này, nếu không mọi truy vấn cài đặt trả HTTP 500. Cần Alembic để quản lý việc này.
 
 ## 8. Luồng sự kiện giả lập (chỉ MOCK)
 
