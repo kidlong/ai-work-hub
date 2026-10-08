@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, create_engine
+from sqlalchemy import DateTime, create_engine, inspect, text
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 from sqlalchemy.types import TypeDecorator
 
@@ -47,10 +47,25 @@ engine = _make_engine(get_settings().database_url)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
 
 
+def ensure_dev_columns(eng=None) -> None:  # noqa: ANN001
+    """Chỉ cho dev: DB cũ chưa có cột mới thì ALTER TABLE (dự án chưa dùng Alembic)."""
+    eng = eng or engine
+    insp = inspect(eng)
+    if "user_settings" not in insp.get_table_names():
+        return
+    if "live_sim_enabled" in {c["name"] for c in insp.get_columns("user_settings")}:
+        return
+    default = "1" if eng.dialect.name == "sqlite" else "TRUE"
+    with eng.begin() as conn:
+        conn.execute(text(f"ALTER TABLE user_settings ADD COLUMN live_sim_enabled BOOLEAN NOT NULL DEFAULT {default}"))
+
+
 def init_db() -> None:
     from app.db import models  # noqa: F401  (đăng ký model)
 
     Base.metadata.create_all(bind=engine)
+    if get_settings().app_env == "dev":
+        ensure_dev_columns()
 
 
 def get_db() -> Iterator[Session]:

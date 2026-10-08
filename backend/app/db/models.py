@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import JSON, Boolean, Float, ForeignKey, Index, Integer, String, Text, UniqueConstraint
+from sqlalchemy import JSON, Boolean, Float, ForeignKey, Index, Integer, String, Text, UniqueConstraint, true
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.session import Base, UTCDateTime
@@ -39,6 +39,7 @@ class UserSettings(Base):
         default=lambda: ["exchange_mail", "exchange_calendar", "jira", "confluence", "sdp", "teams"],
     )
     focus_time_suggestions: Mapped[bool] = mapped_column(Boolean, default=True)
+    live_sim_enabled: Mapped[bool] = mapped_column(Boolean, default=True, server_default=true())
 
 
 class WorkItem(Base):
@@ -132,3 +133,21 @@ class AuditLog(Base):
     username: Mapped[str] = mapped_column(String(128), index=True)
     action: Mapped[str] = mapped_column(String(64))
     detail: Mapped[dict] = mapped_column(JSON, default=dict)
+
+
+class LiveEvent(Base):
+    """Sự kiện giả lập (chỉ dùng ở chế độ MOCK): vừa là feed cho app, vừa là trạng thái bền của MockConnector."""
+
+    __tablename__ = "live_events"
+    __table_args__ = {"sqlite_autoincrement": True}  # không tái sử dụng id sau khi xoá
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    username: Mapped[str] = mapped_column(ForeignKey("users.username"), index=True)
+    type: Mapped[str] = mapped_column(String(16))  # new_item | update_item
+    scenario: Mapped[str] = mapped_column(String(48))
+    source: Mapped[str] = mapped_column(String(32))
+    severity: Mapped[str] = mapped_column(String(16), default="info")  # info | warning | critical
+    title: Mapped[str] = mapped_column(String(512))  # nội dung banner
+    external_id: Mapped[str] = mapped_column(String(512))
+    payload: Mapped[dict] = mapped_column(JSON, default=dict)  # trường ItemIn; thời gian dạng offset giây so với created_at
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)

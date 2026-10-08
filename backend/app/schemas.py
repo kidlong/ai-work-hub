@@ -143,6 +143,7 @@ class SettingsIO(BaseModel):
     vip_senders: list[str] = Field(default_factory=list, max_length=200)
     enabled_sources: list[str] = Field(default_factory=list)
     focus_time_suggestions: bool = True
+    live_sim_enabled: bool = True
 
     @field_validator("brief_time", "quiet_start", "quiet_end")
     @classmethod
